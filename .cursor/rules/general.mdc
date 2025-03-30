@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+!IMPORTANT: Maintain code modularity by breaking files into smaller components when they exceed 300 lines of code or contain distinct functional responsibilities (e.g., API calls, utility functions, hooks/logic). Organize these components into the following subfolders under the project root (e.g., /src/app/):
+- /src/app/app_hooks/: Store reusable logic, hooks, or state management functions.
+- /src/app/app_apis/: Store API-related functions (e.g., HTTP requests, API client setup).
+- /src/app/app_utilities/: Store general-purpose utility or helper functions.
+Ensure each component is self-contained, exported properly, and imported where needed. Update the main file (e.g., app_client.py) to orchestrate these components.
+!IMPORTANT: At the top of each file, include a concise, informative header comment summarizing the file's purpose and key details. The header must include:
+- A brief description of the file’s functionality or role.
+- A list of exported functions/classes with their parameters (including type annotations), return types, and required arguments. Adopt the type restriction from Typescript strictly.
+- A list of immediately related files (e.g., dependencies or files that directly interact with this one).
+Use a consistent format (e.g., docstring or block comment) and keep it under 10 lines unless complexity demands more. Update the header if the file’s purpose or dependencies change.
+!IMPORTANT: Always verify the standard, stable version of any technology or library used. Prefer the latest stable release for features and security, but avoid experimental or unsupported versions (e.g., pre-releases, deprecated versions) to prevent compatibility issues with dependencies. Cross-check version compatibility with project requirements and existing dependencies before adoption.
+
+
+!IMPORTANT: @gemini_client.py is an advanced AI analyst capable of processing images, MP3 files, and text.
+ It can generate both text and images as output. we can directly input mp3 and pictures to @gemini_client.py for analysis. Our role is to provide it with sufficient information and well-crafted prompts for effective analysis. @gemini_client.py has a maximum input context window of 1,048,576 tokens and a maximum output window of 8,192 tokens. Suggested to take advantage of the high input context window for every request, since the bottleneck is the output window.
