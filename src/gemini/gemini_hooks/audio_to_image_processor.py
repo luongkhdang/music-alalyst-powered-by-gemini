@@ -25,7 +25,8 @@ from src.gemini.gemini_prompts import (
     get_step3_prompt,
     get_step4_prompt,
     get_step5_prompt,
-    get_final_integration_prompt
+    get_final_integration_prompt,
+    get_refinement_prompt
 )
 
 from src.gemini.gemini_prompts.generation_prompts import (
@@ -94,6 +95,10 @@ class AudioToImageProcessor:
             "analysis_success": False,
             "analysis_path": None,
             "analysis_error": None,
+            "refined_analysis_path": None,
+            "revised_analysis_path": None,
+            "revision_success": False,
+            "revision_error": None,
             "prompt_success": False,
             "prompt_path": None,
             "prompt_error": None,
@@ -114,16 +119,66 @@ class AudioToImageProcessor:
                     f"Analysis failed for {audio_path}, stopping processing")
                 return results
 
-            # Step 2: Generate image prompt (use the final analysis file)
-            analysis_path = Path(
+            # Step 2: Check if we have both final and refined analysis
+            final_analysis_path = Path(
                 analysis_result.get("final_analysis_path", ""))
-            if not analysis_path.exists():
-                logger.error(f"Analysis file not found: {analysis_path}")
-                results["prompt_error"] = "Analysis file not found"
-                return results
+            refined_analysis_path = Path(
+                analysis_result.get("refined_analysis_path", ""))
 
-            # Read the analysis file
-            analysis_text = analysis_path.read_text(encoding="utf-8")
+            if final_analysis_path.exists() and refined_analysis_path.exists():
+                # We have both analyses, create a revised version
+                final_analysis = final_analysis_path.read_text(
+                    encoding="utf-8")
+                refined_analysis = refined_analysis_path.read_text(
+                    encoding="utf-8")
+
+                # Revise the final analysis using the refined analysis
+                logger.info(
+                    f"Revising final analysis using refined analysis for {audio_path}")
+                revision_result = self.revise_final_analysis(
+                    audio_path=audio_path,
+                    final_analysis=final_analysis,
+                    refined_analysis=refined_analysis
+                )
+
+                # Update results with revision outcome
+                results.update(revision_result)
+
+                # If revision was successful, use the revised analysis for image generation
+                if revision_result.get("revision_success", False):
+                    revised_analysis_path = Path(
+                        revision_result.get("revised_analysis_path", ""))
+                    if revised_analysis_path.exists():
+                        logger.info(
+                            f"Using revised analysis for image generation")
+                        analysis_text = revised_analysis_path.read_text(
+                            encoding="utf-8")
+                    else:
+                        # Fall back to refined analysis
+                        logger.info(
+                            f"Using refined analysis for image generation (revision unsuccessful)")
+                        analysis_text = refined_analysis
+                else:
+                    # Fall back to refined analysis
+                    logger.info(
+                        f"Using refined analysis for image generation (revision unsuccessful)")
+                    analysis_text = refined_analysis
+            elif refined_analysis_path.exists():
+                # Use the refined analysis for image generation
+                logger.info(f"Using refined analysis for image generation")
+                analysis_text = refined_analysis_path.read_text(
+                    encoding="utf-8")
+                results["refined_analysis_path"] = str(refined_analysis_path)
+            elif final_analysis_path.exists():
+                # Use the final analysis for image generation
+                logger.info(
+                    f"Using final analysis for image generation (no refinement available)")
+                analysis_text = final_analysis_path.read_text(encoding="utf-8")
+                results["analysis_path"] = str(final_analysis_path)
+            else:
+                logger.error(f"No analysis files found for {audio_path}")
+                results["analysis_error"] = "No analysis files found"
+                return results
 
             # Generate prompt
             prompt_result = self.generate_image_prompt(
@@ -212,13 +267,16 @@ class AudioToImageProcessor:
         """
         Perform a comprehensive five-step analysis of the audio file.
 
+        Each step will listen to the audio file 5 times focusing on different aspects.
+
         Steps:
-        1. Step 1: Musical Foundation and Hook Analysis
-        2. Step 2: Sound Engineering and Production Techniques (builds on Step 1)
-        3. Step 3: Harmony, Melody, and Trend Alignment (builds on Steps 1 & 2)
-        4. Step 4: Structure and Production Optimization (builds on Steps 1, 2 & 3)
-        5. Step 5: Critical Evaluation and Improvement Suggestions (builds on Steps 1-4)
-        6. Final Analysis: Comprehensive merge of all five analyses
+        1. Step 1: Musical Foundation and Hook Analysis (5 listening sessions)
+        2. Step 2: Sound Engineering and Production Techniques (5 listening sessions)
+        3. Step 3: Harmony, Melody, and Trend Alignment (5 listening sessions)
+        4. Step 4: Structure and Production Optimization (5 listening sessions)
+        5. Step 5: Critical Evaluation and Improvement Suggestions (5 listening sessions)
+        6. Final Analysis: Comprehensive merge of all five analyses (5 listening sessions)
+        7. Refinement: Critical review by a Musical Foundation Specialist (5 listening sessions)
 
         Args:
             audio_path: Path to the audio file
@@ -235,7 +293,8 @@ class AudioToImageProcessor:
             "step3_analysis_path": None,
             "step4_analysis_path": None,
             "step5_analysis_path": None,
-            "final_analysis_path": None
+            "final_analysis_path": None,
+            "refined_analysis_path": None
         }
 
         try:
@@ -404,6 +463,29 @@ class AudioToImageProcessor:
             logger.info(f"Final analysis saved to {final_analysis_path}")
             results["final_analysis_path"] = str(final_analysis_path)
 
+            # Pause to respect API rate limits
+            time.sleep(RATE_LIMIT_PAUSE)
+
+            # REFINEMENT STEP: Critical Musical Foundation Specialist review
+            logger.info(f"Performing refinement analysis for {audio_path}")
+            refinement_prompt = get_refinement_prompt(final_analysis)
+
+            # Generate content with MP3 title included
+            refined_analysis = self._analyze_audio_with_title(
+                audio_path=audio_path,
+                prompt=refinement_prompt,
+                temperature=0.3,  # Lower temperature for more precise critique
+                step_name="Refinement: Critical Musical Foundation Specialist Review"
+            )
+
+            # Save the refined analysis to file
+            refined_analysis_path = self.analysis_dir / \
+                f"{audio_path.stem}_refined_analysis.txt"
+            refined_analysis_path.write_text(
+                refined_analysis, encoding="utf-8")
+            logger.info(f"Refined analysis saved to {refined_analysis_path}")
+            results["refined_analysis_path"] = str(refined_analysis_path)
+
             # Mark analysis as successful
             results["analysis_success"] = True
 
@@ -428,10 +510,21 @@ class AudioToImageProcessor:
         Returns:
             Analysis text
         """
+        # Add instruction to listen to the audio 5 times
+        enhanced_prompt = f"""!IMPORTANT: Listen to the provided audio file at least 5 complete times before beginning your analysis.
+For each listening session, focus on a different aspect of the track.
+Listening session 1: Focus on overall impression, genre, and mood.
+Listening session 2: Focus on composition, melody, and harmony.
+Listening session 3: Focus on production techniques and sound engineering.
+Listening session 4: Focus on arrangement and structure.
+Listening session 5: Focus on details you might have missed in previous sessions.
+
+{prompt}"""
+
         # Use analyze_audio from the client, but customize the source parameter
         response_text = self.client.analyze_audio(
             audio_path_or_file=audio_path,
-            prompt=prompt,
+            prompt=enhanced_prompt,
             temperature=temperature
         )
 
@@ -441,7 +534,7 @@ class AudioToImageProcessor:
         # Use the client's _send_to_discord method to send the result to Discord
         self.client._send_to_discord(
             response=response_text,
-            prompt=prompt,
+            prompt=enhanced_prompt,
             is_final=True,
             source=source_with_title,
             content_type="audio analysis"
@@ -453,6 +546,7 @@ class AudioToImageProcessor:
                                      audio_path: Path = None, step_name: str = "Content Generation") -> str:
         """
         Generate content with a text prompt and include the MP3 title in the Discord message.
+        For steps that include audio analysis, this will analyze the audio 5 times.
 
         Args:
             prompt: Text prompt to generate content from
@@ -463,11 +557,31 @@ class AudioToImageProcessor:
         Returns:
             Generated text
         """
-        # Use generate_content from Gemini client
-        response_text = self.client.generate_content(
-            prompt=prompt,
-            temperature=temperature
-        )
+        # If we have an audio path, this is for a step that should include audio analysis
+        if audio_path and audio_path.exists():
+            # Add instruction to listen to the audio 5 times and include the audio file multiple times
+            enhanced_prompt = f"""!IMPORTANT: Listen to the provided audio file at least 5 complete times before proceeding.
+For each listening session, focus on a different aspect of the track.
+Listening session 1: Focus on overall impression, genre, and mood.
+Listening session 2: Focus on composition, melody, and harmony.
+Listening session 3: Focus on production techniques and sound engineering.
+Listening session 4: Focus on arrangement and structure.
+Listening session 5: Focus on details you might have missed in previous sessions.
+
+{prompt}"""
+
+            # Use analyze_audio to ensure the model processes the audio 5 times
+            response_text = self.client.analyze_audio(
+                audio_path_or_file=audio_path,
+                prompt=enhanced_prompt,
+                temperature=temperature
+            )
+        else:
+            # Standard text generation without audio
+            response_text = self.client.generate_content(
+                prompt=prompt,
+                temperature=temperature
+            )
 
         # Send to Discord with a custom source that includes the MP3 title
         if audio_path:
@@ -478,7 +592,7 @@ class AudioToImageProcessor:
         # Use the client's _send_to_discord method to send the result to Discord
         self.client._send_to_discord(
             response=response_text,
-            prompt=prompt,
+            prompt=prompt if audio_path is None else enhanced_prompt,
             is_final=True,
             source=source_with_title,
             content_type="text"
@@ -507,14 +621,33 @@ class AudioToImageProcessor:
             # Ensure output directories exist
             self.prompt_dir.mkdir(exist_ok=True, parents=True)
 
+            # Try to load the refined analysis first, fall back to final analysis if not available
+            refined_path = self.analysis_dir / \
+                f"{audio_path.stem}_refined_analysis.txt"
+            if refined_path.exists():
+                logger.info(
+                    f"Using refined analysis for image prompt generation")
+                analysis_text = refined_path.read_text(encoding="utf-8")
+
             # Get the prompt template
             prompt_template = get_image_generation_prompt(analysis_text)
 
-            # Generate the prompt content with title in Discord message
-            prompt_content = self._generate_content_with_title(
-                prompt=prompt_template,
-                temperature=0.7,
+            # Add instruction to listen to the audio 5 times
+            enhanced_prompt = f"""!IMPORTANT: Listen to the provided audio file at least 5 complete times before generating the image prompt.
+For each listening session, focus on a different aspect to visualize:
+Listening session 1: Focus on mood, atmosphere, and emotional impact.
+Listening session 2: Focus on key visual elements suggested by the genre and style.
+Listening session 3: Focus on colors, textures, and lighting that match the sound.
+Listening session 4: Focus on composition and arrangement of visual elements.
+Listening session 5: Focus on unique visual characteristics that make this track special.
+
+{prompt_template}"""
+
+            # Generate the prompt content using the audio file
+            prompt_content = self._analyze_audio_with_title(
                 audio_path=audio_path,
+                prompt=enhanced_prompt,
+                temperature=0.7,
                 step_name="Image Prompt Generation"
             )
 
@@ -602,15 +735,41 @@ class AudioToImageProcessor:
             if not main_prompt:
                 raise ValueError("Prompt does not contain a 'prompt' field")
 
+            # Enhance prompt to include 5 listening sessions instruction
+            enhanced_prompt = f"""!IMPORTANT: Listen to the provided audio file at least 5 complete times before generating the image.
+For each listening session, focus on a different visual aspect:
+Listening session 1: Focus on overall mood and atmosphere for the image.
+Listening session 2: Focus on primary colors and lighting that match the track's energy.
+Listening session 3: Focus on textures and patterns suggested by the sound.
+Listening session 4: Focus on composition elements and visual rhythm.
+Listening session 5: Focus on special details that will make the image unique to this track.
+
+Now generate an image that represents this track visually:
+
+{main_prompt}"""
+
+            # If audio file exists, use analyze_audio first to ensure the model listens 5 times
+            if audio_path.exists():
+                # First have the model listen to the audio 5 times
+                _ = self.client.analyze_audio(
+                    audio_path_or_file=audio_path,
+                    prompt=f"Listen to this audio track 5 times carefully. Focus on different aspects each time. This is preparation for image generation.",
+                    temperature=0.4
+                )
+
+                # Small pause to ensure proper processing
+                time.sleep(1)
+
             # Generate the image
             description_text, image = self.client.generate_image(
-                main_prompt, temperature=0.9)
+                enhanced_prompt, temperature=0.9
+            )
 
             # Send the description to Discord with MP3 title included
             source_with_title = f"Image Generation | {audio_path.name}"
             self.client._send_to_discord(
                 response=description_text if description_text else "Image generated successfully",
-                prompt=main_prompt,
+                prompt=enhanced_prompt,
                 is_final=True,
                 source=source_with_title,
                 content_type="image generation"
@@ -628,5 +787,91 @@ class AudioToImageProcessor:
             logger.exception(
                 f"Error generating image for {audio_path}: {str(e)}")
             results["image_error"] = str(e)
+
+        return results
+
+    def revise_final_analysis(self, audio_path: Path, final_analysis: str, refined_analysis: str) -> Dict[str, Any]:
+        """
+        Revise the final analysis using insights from the refined analysis
+
+        Args:
+            audio_path: Path to the audio file
+            final_analysis: The original final analysis text
+            refined_analysis: The refined analysis text with critique and corrections
+
+        Returns:
+            Dictionary with the revised analysis path
+        """
+        results = {
+            "revision_success": False,
+            "revised_analysis_path": None,
+            "revision_error": None
+        }
+
+        try:
+            # Ensure output directories exist
+            self.analysis_dir.mkdir(exist_ok=True, parents=True)
+
+            # Create the revision prompt
+            revision_prompt = f"""You are a music analysis system tasked with creating the most accurate analysis possible.
+!IMPORTANT: Listen to the provided audio file at least 5 complete times for each of the following purposes:
+- Listening session 1-5: Listen 5 times to ensure a thorough understanding of the track.
+- Listening session 6-10: Listen 5 more times to verify accuracy of the final analysis.
+- Listening session 11-15: Listen 5 more times to verify accuracy of the refined analysis.
+- Listening session 16-20: Listen 5 more times to perform your own critical assessment.
+- Listening session 21-25: Listen 5 final times to ensure your revised analysis is 100% accurate.
+
+For each set of 5 listening sessions, focus on:
+Session 1: Overall impression, genre, and mood
+Session 2: Composition, melody, and harmony
+Session 3: Production techniques and sound engineering
+Session 4: Arrangement and structure
+Session 5: Details you might have missed in previous sessions
+
+I have:
+1. A final analysis of an audio track
+2. A refined analysis from a critical Musical Foundation Specialist who has verified technical claims and found potential errors
+
+Your task: Create a revised version of the final analysis that incorporates the refinements, corrections, and verified details from the refined analysis. The revised analysis should be factually accurate, technically sound, and maintain the comprehensive nature of the original final analysis while correcting any inaccuracies identified in the refinement.
+
+FINAL ANALYSIS:
+{final_analysis}
+
+REFINED ANALYSIS (with verified details and corrections):
+{refined_analysis}
+
+INSTRUCTIONS:
+1. Maintain the structure and comprehensive nature of the original final analysis
+2. Incorporate all factual corrections from the refined analysis
+3. Add any important technical details highlighted in the refinement
+4. Remove any inaccurate claims identified in the refinement
+5. Keep the total length similar to the original final analysis
+6. Ensure all details are consistent and technically accurate
+
+Create a revised, corrected, and improved final analysis based on these inputs.
+"""
+
+            # Generate the revised analysis with MP3 title included in Discord message
+            revised_analysis = self._generate_content_with_title(
+                prompt=revision_prompt,
+                temperature=0.4,
+                audio_path=audio_path,
+                step_name="Revised Final Analysis"
+            )
+
+            # Save the revised analysis to file
+            revised_analysis_path = self.analysis_dir / \
+                f"{audio_path.stem}_revised_analysis.txt"
+            revised_analysis_path.write_text(
+                revised_analysis, encoding="utf-8")
+            logger.info(f"Revised analysis saved to {revised_analysis_path}")
+
+            results["revision_success"] = True
+            results["revised_analysis_path"] = str(revised_analysis_path)
+
+        except Exception as e:
+            logger.exception(
+                f"Error revising final analysis for {audio_path}: {str(e)}")
+            results["revision_error"] = str(e)
 
         return results

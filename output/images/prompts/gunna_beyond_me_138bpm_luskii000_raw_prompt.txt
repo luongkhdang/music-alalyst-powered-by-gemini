@@ -1,8 +1,0 @@
-```json
-{
-  "mood": "Dark, Intense, Futuristic",
-  "colors": ["deep blues", "purples", "blacks", "neon greens", "electric whites"],
-  "style": "Cyberpunk Glitch Art",
-  "prompt": "Imagine a cyberpunk cityscape at night, shrouded in deep blues and purples. Neon green and electric white lights slice through the darkness, illuminating rain-slicked streets and towering skyscrapers. Anonymous figures in glowing masks move through the scene, their forms distorted by digital glitches. Fragmented realities overlap, creating a sense of unease and intensity. The overall atmosphere is dark, futuristic, and melancholic, reflecting the driving energy of the music with a touch of digital decay."
-}
-```

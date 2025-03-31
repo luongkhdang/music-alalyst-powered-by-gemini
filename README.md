@@ -1,152 +1,108 @@
-# Gemini-Discord Integration
+# 🎵➡️🖼️ Gemini-Discord: Turn Tracks into Visual Magic
 
-A powerful integration that allows you to visualize and track Gemini API's responses in real-time using Discord webhooks.
+## What It Does
 
-## Features
+Feed Gemini your tracks, and watch as it unravels their musical DNA through Discord in real-time! Then transforms them into stunning visuals that capture their essence.
 
-- Send all Gemini API responses to Discord channels
-- Track Gemini's "thinking process" for text generation, image analysis, and audio analysis
-- Handle errors and send them to Discord for debugging
-- Support for multimodal content analysis
-- Maintain all the functionality of the original GeminiClient
+## The Secret Sauce
 
-## Requirements
+- **5-Step Analysis**: Your track gets the VIP treatment through a multi-step analysis
+  - 🎹 **Step 1**: Musical foundation & hook hunting
+  - 🎚️ **Step 2**: Sound engineering detective work
+  - 🎵 **Step 3**: Harmony & melody exploration
+  - 🏗️ **Step 4**: Structure optimization
+  - 🔍 **Step 5**: Critical evaluation by your harshest producer friend
+- **Refinement**: An extremely critical musical specialist with decades of experience tears it all apart (in a good way!)
 
-- Python 3.7+
-- Google Gemini API key
-- Discord webhook URLs
+- **Image Generation**: Turns all that musical wisdom into visual eye candy
 
-## Installation
-
-1. Clone this repository:
+## Quick Start
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
-```
-
-2. Install the required dependencies:
-
-```bash
+# Clone, install, set up .env with your API keys
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables in a `.env` file:
-
-```
-# Gemini API
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Discord Webhooks
-DISCORD_URL_WEBHOOK_ERRORS=https://discord.com/api/webhooks/your_error_webhook_url
-DISCORD_URL_WEBHOOK_AI_ANALYSIS=https://discord.com/api/webhooks/your_analysis_webhook_url
-DISCORD_URL_WEBHOOK_AI_MATERIALS=https://discord.com/api/webhooks/your_materials_webhook_url
-DISCORD_CHARACTER_PER_MESSAGE_LIMIT=1900
-```
-
-## Usage
-
-### Basic Usage
-
 ```python
+# Let the magic happen
 from src.gemini.gemini_client import GeminiClient
+from src.gemini.gemini_hooks.audio_to_image_processor import AudioToImageProcessor
 
-# Initialize the client
 client = GeminiClient()
+processor = AudioToImageProcessor(client=client)
 
-# Generate text content
-response = client.generate_content(
-    "Explain how large language models like Gemini work in 3 paragraphs"
-)
-
-# The response will be sent to Discord automatically
-print("Response sent to Discord successfully!")
+# One line to rule them all
+result = processor.process_audio_file("your_next_hit.mp3")
 ```
 
-### Analyzing Images
+## Pro Tips
 
-```python
-# Analyze an image
-image_path = "path/to/your/image.jpg"
-response = client.analyze_image(
-    image_path_or_file=image_path,
-    prompt="Describe what you see in this image in detail."
-)
-```
+- Each analysis step listens to your track 6 times (that's 30+ listens total!)
+- Discord shows you Gemini's thought process in real-time
+- Even the harshest music critic couldn't be more detailed than our refinement stage
 
-### Analyzing Audio
+## Made For
 
-```python
-# Analyze an audio file
-audio_path = "path/to/your/audio.mp3"
-response = client.analyze_audio(
-    audio_path_or_file=audio_path,
-    prompt="Analyze this audio file and describe its characteristics."
-)
-```
+Music producers, artists, and anyone who wants to see what their music really looks like.
 
-### Chat Conversations
+Happy producing! 🎧✨
 
-```python
-# Create a chat session
-client.create_chat(system_instruction="You are a helpful AI assistant.")
+## DEMO:
 
-# Send messages in a conversation
-response1 = client.send_message("Hello, can you help me with a question?")
-response2 = client.send_message("What's the best way to learn Python?")
+AUDIO: gunna_made_it_130bpm_luskii000
+"""
 
-# All responses are automatically sent to Discord
-```
+## Synthwave Viral Blueprint: Project "Neon Drive" (2025)
 
-### Multimodal Analysis
+**Project Goal:** Elevate "Neon Drive" to viral status in 2025 by optimizing its sonic signature, emotional impact, and platform fit.
 
-```python
-from PIL import Image
+**1. TECHNICAL ASPECTS:**
 
-# Load an image
-image = Image.open("path/to/image.jpg")
+- **Genre:** Melancholic Synthwave with Retrowave and Melodic Techno influences.
+- **Tempo:** 124.9 BPM.
+- **Key:** G Minor.
+- **Standout Instrumentation:** Sawtooth lead synth (fundamental around 440 Hz), driving sub-bass, arpeggiated synth. The lead synth incorporates chorus and delay effects. The sub-bass has subtle distortion and harmonic content.
+- **Viral Sonic Signature:** Gated reverb, sidechained bass, and a punchy kick. Sidechaining is subtle. Gated reverb is primarily used on the snare and some synth elements.
+- **Essential Engineering:** Precise EQ carving to prevent muddiness (especially in the bridge, 1:00-1:15), wide stereo imaging for synths. Example: High-pass filter pad synth around 300Hz.
 
-# Create multimodal content (text + image)
-contents = [
-    "Analyze this image and tell me what you see.",
-    image
-]
+**2. EMOTIONAL QUALITIES:**
 
-# Analyze multimodal content
-response = client.analyze_multimodal(contents)
-```
+- **Mood:** Nostalgic, melancholic, driving, longing.
+- **Energy:** Builds from subtle anticipation to high-energy drive, with moments of respite.
+- **Emotional Arc:** Introverted reflection -> Energetic release -> Harmonically rich contemplation -> Intensified drive -> Gradual fade into memory. The "harmonically rich contemplation" section (around 1:00) shifts to a more melodic and less rhythmically intense section, creating contrast.
+- **Viral Hooks:** Catchy arpeggiated intro (0:00-0:15), memorable lead synth melody (0:15-0:30), and a variation with added effects (0:45-1:00).
 
-## Discord Channel Setup
+**3. VISUAL ASSOCIATIONS:**
 
-The integration uses three different Discord webhooks:
+- **Colors:** Neon blues, purples, and pinks against a dark, gridded cityscape.
+- **Scenes:** Retro arcade, chrome sports car speeding down a rain-slicked highway, digital sunsets, glitching computer screens.
+- **Imagery:** 8-bit graphics, geometric patterns, synthwave album art, cyberpunk aesthetics.
+- **Viral Visual Potential:** Looping animations synced to the beat, glitch art transitions, retro-futuristic landscapes, and kinetic typography.
 
-1. **Error Webhook**: For sending error messages and exceptions
-2. **AI Analysis Webhook**: For final/complete analysis results
-3. **AI Materials Webhook**: For intermediate results and "thinking process"
+**4. CREATIVE DIRECTION:**
 
-You can set these up in your Discord server by:
+**Viral Hook Optimization:**
 
-1. Go to Server Settings > Integrations > Webhooks
-2. Create a new webhook for each channel
-3. Copy the webhook URLs and add them to your `.env` file
+1.  **Vocal Chop Layer:** Add a subtle, pitched-up vocal chop sample to the main theme (0:15-0:30) for ear candy. Requires careful execution.
+2.  **Rhythmic Stutter:** Introduce a 1/16th note stutter effect on the last note of every 4-bar phrase in the main theme. Needs careful implementation to avoid sounding gimmicky.
+3.  **Harmonic Depth:** Insert a Cm chord at 1:07 to add harmonic interest and dynamism.
+4.  **Intro/Outro Trim:** Shorten the intro and outro to 8 seconds (4 bars) each for immediate impact and satisfying closure.
+5.  **Bridge Clarity:** Apply high-pass filter to pad synth around 300 Hz and subtle sidechain compression to the kick drum.
+6.  **AI Vocal Texture:** Layer a short, ethereal AI-generated vocal phrase in the variation section (0:45-1:00). Requires careful selection and processing.
 
-## Examples
+**Platform Fit:**
 
-Check out the example scripts in the `src/examples` directory for more detailed usage patterns:
+- **TikTok/Reels:** Optimize for 10-15 second loopable segments (e.g., 0:15-0:30, 0:45-1:00).
+- **Streaming:** Master for -10 LUFS, ensuring dynamic range and punch.
 
-- `gemini_discord_example.py`: Full examples of various Gemini capabilities with Discord integration
+**Reference Artists:** Perturbator, Kavinsky, The Midnight, Gunship (with a touch of Daft Punk's production polish).
 
-## Advantages of Using This Integration
+**Streamlined Improvement Roadmap:**
 
-- **Real-time Visibility**: See exactly what Gemini is thinking and how it processes information
-- **Debugging Support**: Easily identify and fix issues with your prompts or content
-- **Collaborative Analysis**: Share AI outputs with your team via Discord channels
-- **Comprehensive Logging**: Keep a record of all interactions with Gemini
+1.  **Enhance Hook Strength:** Layer vocal chops, rhythmic edits, and EQ adjustments.
+2.  **Address Engineering Flaws:** Improve bridge clarity with filtering and sidechaining.
+3.  **Increase Harmonic/Melodic Impact:** Add chord insertions and AI vocal textures.
+4.  **Optimize Structure:** Trim intro/outro and enhance transitions.
+5.  **Experiment with Bold Enhancements:** Incorporate subtle global percussion and bit-crushing.
 
-## Notes on Gemini's Capabilities
-
-Gemini is an advanced AI analyst capable of processing images, MP3 files, and text. It can generate both text and images as output. We can directly input MP3 and pictures to Gemini for analysis.
-
-- **Input Context Window**: 1,048,576 tokens (very large)
-- **Output Window**: 8,192 tokens
-- **Best Practice**: Take advantage of the high input context window for every request, since the bottleneck is the output window
+"""

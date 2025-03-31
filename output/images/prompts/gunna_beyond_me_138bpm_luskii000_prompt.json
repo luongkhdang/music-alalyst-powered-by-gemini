@@ -1,14 +1,14 @@
 {
-  "mood": "Dystopian Cybernetic Resonance",
+  "mood": "Cybernetic Solitude",
   "colors": [
-    "#191970",
-    "#4B0082",
-    "#00FFFF",
-    "#000000",
-    "#90EE90"
+    "#1A237E",
+    "#4A148C",
+    "#2E7D32",
+    "#B388FF",
+    "#00BCD4"
   ],
-  "style": "Cyberpunk Glitch Art",
-  "prompt": "A lone figure, masked and cloaked in shadow, stands in a rain-slicked neon alleyway of a sprawling cyberpunk metropolis. Digital glitches fracture the cityscape, revealing fragmented layers of reality beneath the surface. Deep blues and purples dominate the palette, punctuated by flashes of electric white and neon green. The air crackles with energy, a palpable tension building towards a sonic drop. The image embodies a sense of melancholic isolation within a technologically advanced, yet decaying, world \u2013 a visual echo of the track\u2019s dark melodic core.",
-  "timestamp": "2025-03-30T11:44:38.803814",
+  "style": "Dark Abstract Expressionism",
+  "prompt": "Envision a desolate, rain-slicked cyberpunk alley bathed in the eerie glow of neon signs. Glitching interfaces flicker on decaying walls, casting fragmented light on an ethereal figure cloaked in shadow. The scene unfolds in slow motion, revealing intricate details of corroded metal and digital decay. An abstract network of pulsating energy flows beneath the surface, visualized through vibrant blues, purples, and deep greens, punctuated by bursts of cyan. The overall composition embodies a sense of melancholic introspection within a decaying digital world.",
+  "timestamp": "2025-03-30T17:27:09.521751",
   "audio_file": "gunna_beyond_me_138bpm_luskii000.mp3"
 }

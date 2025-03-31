@@ -5,6 +5,7 @@ Exports prompt templates for various tasks:
 - Analysis prompts: For audio, image, and content analysis
 - Generation prompts: For creating images, stories, and expanding ideas
 - Multi-step analysis prompts: For the five-step viral music analysis
+- Refinement prompts: For critical evaluation of final analysis
 
 Related files:
 - src/gemini/gemini_client.py: Main client that uses these prompts
@@ -33,6 +34,16 @@ from src.gemini.gemini_prompts.multi_step_analysis_prompts import (
     get_final_integration_prompt
 )
 
+from src.gemini.gemini_prompts.refinement_prompt import (
+    get_refinement_prompt,
+    get_refinery_analyst1_prompt,
+    get_refinery_analyst2_prompt,
+    get_refinery_analyst3_prompt,
+    get_refinery_analyst4_prompt,
+    get_refinery_analyst5_prompt,
+    get_final_refinery_prompt
+)
+
 __all__ = [
     # Analysis prompts
     'get_audio_analysis_prompt',
@@ -50,5 +61,14 @@ __all__ = [
     'get_step3_prompt',
     'get_step4_prompt',
     'get_step5_prompt',
-    'get_final_integration_prompt'
+    'get_final_integration_prompt',
+
+    # Refinement prompts
+    'get_refinement_prompt',
+    'get_refinery_analyst1_prompt',
+    'get_refinery_analyst2_prompt',
+    'get_refinery_analyst3_prompt',
+    'get_refinery_analyst4_prompt',
+    'get_refinery_analyst5_prompt',
+    'get_final_refinery_prompt'
 ]
