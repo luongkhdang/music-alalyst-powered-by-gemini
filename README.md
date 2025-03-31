@@ -49,7 +49,8 @@ Happy producing! 🎧✨
 
 ## DEMO:
 
-AUDIO: gunna_made_it_130bpm_luskii000
+AUDIO FROM /data_source/: gunna_made_it_130bpm_luskii000
+
 """
 
 ## Synthwave Viral Blueprint: Project "Neon Drive" (2025)
